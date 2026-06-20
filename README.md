@@ -39,7 +39,7 @@
      --window-size=1920,1080 --virtual-time-budget=4000 \
      "file://$(pwd)/AI 강연 슬라이드 v2.html#N"
    ```
-4. `talk/` 작업이 끝나면 **`index.html`에 그대로 복사**해서 배포용 사본을 최신 상태로 맞춘다 (`index.html`과 `talk/AI 강연 슬라이드 v2.html`은 내용이 동일해야 한다).
+4. `talk/` 작업이 끝나면 **`index.html`에 그대로 복사**해서 배포용 사본을 최신 상태로 맞춘다 (`index.html`과 `talk/AI 강연 슬라이드 v2.html`은 내용이 동일해야 한다). `deck-stage.js`도 같은 폴더에 있어야 하므로 `talk/deck-stage.js`를 루트의 `deck-stage.js`로 함께 복사한다 — 빠지면 `<deck-stage>` 커스텀 엘리먼트가 정의되지 않아 슬라이드가 전혀 동작하지 않는다.
 
 ## 현재 상태
 
