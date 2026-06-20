@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="ko"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI는 당신의 일자리를 빼앗지 않는다 — v2</title>
+<style>
+@font-face {
+  font-family: 'Pretendard';
+  src: url('fonts/PretendardVariable.woff2') format('woff2-variations');
+  font-weight: 45 920;
+  font-display: swap;
+}
+:root{
+  --navy:#0E1525;
+  --blue-deep:#1A3FAE;
+  --blue:#2952E3;
+  --blue-bright:#3DA9FC;
+  --cyan:#5FD0FF;
+  --white:#FFFFFF;
+  --ink:#10162B;
+  --ink-soft:#3C4660;
+  --grey:#6B7385;
+  --grey-line:#E4E7EF;
+  --bg-soft:#F5F7FC;
+  --coral:#FF5A5F;
+  --green:#2FBE7E;
+  --amber:#F3A93B;
+  --pastel-blue:#E8F0FF;
+  --pastel-mint:#E6F8F0;
+  --pastel-peach:#FFEFE9;
+  --pastel-purple:#F1ECFF;
+  --pastel-amber:#FFF6E3;
+  --font:'Pretendard',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;background:var(--navy);}
+deck-stage:not(:defined){visibility:hidden;}
+deck-stage{font-family:var(--font);}
+
+section{
+  width:100%;height:100%;position:relative;overflow:hidden;
+  font-family:var(--font);
+  color:var(--ink);
+  background:var(--white);
+}
+
+/* ===== shared utility classes ===== */
+.theme-dark{ background:var(--navy); color:var(--white); }
+.theme-blue{ background:linear-gradient(135deg,var(--blue-deep) 0%, var(--blue) 55%, var(--blue-bright) 100%); color:var(--white); }
+.theme-soft{ background:var(--bg-soft); }
+
+.blob{
+  position:absolute; border-radius:50%;
+  background:radial-gradient(circle at 30% 30%, rgba(255,255,255,.16), rgba(255,255,255,0) 70%);
+  filter:blur(0px);
+}
+
+.indicator{
+  position:absolute; left:64px; bottom:48px;
+  display:flex; gap:14px; font-size:18px; letter-spacing:.04em; color:var(--grey);
+}
+.indicator span{ opacity:.4; }
+.indicator span.on{ opacity:1; color:var(--blue-bright); font-weight:700; }
+.theme-dark .indicator span,.theme-blue .indicator span{ color:rgba(255,255,255,.45); }
+.theme-dark .indicator span.on,.theme-blue .indicator span.on{ color:#fff; opacity:1; }
+
+.src{
+  position:absolute; right:64px; bottom:48px;
+  font-size:17px; color:var(--grey); letter-spacing:.01em;
+}
+.theme-dark .src,.theme-blue .src{ color:rgba(255,255,255,.55); }
+
+.label{
+  display:inline-flex; align-items:center; gap:8px;
+  font-size:18px; font-weight:700; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--blue);
+}
+.theme-dark .label,.theme-blue .label,.shift-impact .label{ color:var(--cyan); }
+.label::before{
+  content:''; width:8px; height:8px; border-radius:2px; background:var(--blue);
+}
+.theme-dark .label::before,.theme-blue .label::before,.shift-impact .label::before{ background:var(--cyan); }
+
+.build{ opacity:0; transform:translateY(14px); transition:opacity .5s ease, transform .5s ease; }
+.build.in{ opacity:1; transform:translateY(0); }
+
+.accent{ color:var(--blue-bright); }
+.theme-dark .accent,.theme-blue .accent{ color:var(--cyan); }
+.coral{ color:var(--coral); }
+.grey-text{ color:var(--grey); }
+.dim{ opacity:.45; }
+
+/* ===== S1 title ===== */
+.s1 .blob.b1{ width:1100px; height:1100px; top:-360px; right:-320px; }
+.s1 .blob.b2{ width:760px; height:760px; bottom:-300px; left:-220px; background:radial-gradient(circle at 60% 40%, rgba(95,208,255,.22), rgba(255,255,255,0) 70%); }
+.s1 .wrap{ position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:0 120px; }
+.s1 .kicker{ font-size:26px; letter-spacing:.08em; color:rgba(255,255,255,.7); margin-bottom:28px; font-weight:600; }
+.s1 .head{ font-size:68px; font-weight:800; line-height:1.28; margin:0; }
+.s1 .head .hl{ color:#FFFFFF; background:linear-gradient(90deg,#5FD0FF,#FFFFFF); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.s1 .sub{ margin-top:36px; font-size:32px; font-weight:500; color:rgba(255,255,255,.85); line-height:1.5; }
+.s1 .sub .hl2{ color:#fff; font-weight:800; }
+.s1 .foot{ position:absolute; bottom:56px; left:0; right:0; text-align:center; font-size:20px; color:rgba(255,255,255,.6); letter-spacing:.02em; }
+
+/* ===== S2 +56% hero ===== */
+.s2{ background:var(--white); }
+.s2 .wrap{ position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; }
+.s2 .mega{ font-size:260px; font-weight:800; color:var(--blue); line-height:1; letter-spacing:-.02em; }
+.s2 .mega-sub{ margin-top:8px; font-size:30px; color:var(--ink-soft); font-weight:600; }
+.s2 .flip{ margin-top:40px; font-size:38px; font-weight:800; color:var(--coral); }
+.s2 .flip-sub{ margin-top:10px; font-size:21px; color:var(--grey); }
+
+/* ===== S3 Replit quote (dark impact) ===== */
+.s3{ background:var(--navy); }
+.s3 .wrap{ position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:0 100px; }
+.s3 .mark{ font-size:124px; color:var(--coral); line-height:1; margin-bottom:8px; font-weight:800; }
+.s3 .q-en{ font-size:56px; font-weight:800; color:#fff; line-height:1.3; }
+.s3 .q-ko{ margin-top:28px; font-size:32px; color:rgba(255,255,255,.78); font-weight:500; }
+.s3 .credit{ margin-top:36px; font-size:20px; color:rgba(255,255,255,.5); letter-spacing:.02em; }
+
+/* ===== S4 value shift 2-col ===== */
+.s4{ background:var(--bg-soft); }
+.s4 .head{ position:absolute; top:88px; left:64px; font-size:44px; font-weight:800; color:var(--ink); }
+.s4 .vs{ position:absolute; top:230px; left:64px; right:64px; bottom:140px; display:flex; gap:40px; }
+.s4 .vcol{ flex:1; border-radius:24px; padding:48px 40px; display:flex; flex-direction:column; justify-content:center; }
+.s4 .vcol.down{ background:#EDEFF5; }
+.s4 .vcol.up{ background:linear-gradient(135deg,var(--blue-deep),var(--blue)); color:#fff; }
+.s4 .vcol .tag{ font-size:19px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; opacity:.6; margin-bottom:18px; }
+.s4 .vcol.up .tag{ color:#cfe0ff; opacity:1; }
+.s4 .vcol .ttl{ font-size:42px; font-weight:800; line-height:1.3; }
+.s4 .vcol.down .ttl{ color:#7C8499; }
+.s4 .vcol .desc{ margin-top:18px; font-size:21px; line-height:1.5; }
+.s4 .vcol.down .desc{ color:#9197A8; }
+.s4 .vcol.up .desc{ color:#E4ECFF; }
+.s4 .arrow{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:46px; color:var(--blue); font-weight:800; z-index:2; background:#fff; width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center; box-shadow:0 8px 24px rgba(0,0,0,.08); }
+
+/* ===== S5 Karpathy quote ===== */
+.s5{ background:var(--navy); }
+.s5 .wrap{ position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:0 110px; }
+.s5 .q1{ font-size:50px; font-weight:700; color:rgba(255,255,255,.55); line-height:1.45; }
+.s5 .q2{ font-size:50px; font-weight:800; color:var(--cyan); line-height:1.45; margin-top:8px; }
+.s5 .credit{ position:absolute; right:72px; bottom:64px; font-size:21px; color:rgba(255,255,255,.55); font-style:italic; }
+
+/* ===== S6 maturity model (Dhaval-style split layout) ===== */
+.s6{ background:var(--white); }
+.s6 .left{ position:absolute; left:64px; top:140px; width:38%; }
+.s6 .left .label{ margin-bottom:24px; }
+.s6 .left .head1{ font-size:38px; font-weight:800; line-height:1.4; color:var(--grey); }
+.s6 .left .head2{ font-size:38px; font-weight:800; line-height:1.4; color:var(--coral); margin-top:4px; }
+.s6 .left .desc{ margin-top:22px; font-size:20px; color:var(--ink-soft); line-height:1.65; }
+.s6 .left .quote{ margin-top:28px; background:linear-gradient(135deg,var(--blue-deep),var(--blue)); color:#fff; border-radius:14px; padding:20px 24px; font-size:18px; line-height:1.6; }
+.s6 .left .quote .qlabel{ font-size:14px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:#BFD4FF; margin-bottom:8px; }
+.s6 .right{ position:absolute; right:64px; top:108px; width:52%; display:flex; flex-direction:column; gap:18px; }
+.s6 .card{ border-radius:16px; padding:22px 26px; background:var(--bg-soft); border:1px solid var(--grey-line); position:relative; }
+.s6 .card .crow{ display:flex; align-items:center; gap:12px; }
+.s6 .card .badge-num{ width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:17px; font-weight:800; background:var(--grey-line); color:var(--grey); flex-shrink:0; }
+.s6 .card .ctitle{ font-size:25px; font-weight:800; color:var(--ink); flex:1; }
+.s6 .card .pill{ font-size:14px; font-weight:700; color:var(--grey); background:#fff; border:1px solid var(--grey-line); border-radius:20px; padding:5px 14px; white-space:nowrap; }
+.s6 .card .cdesc{ margin-top:10px; font-size:17px; color:var(--grey); line-height:1.5; padding-left:42px; }
+.s6 .card .tags{ margin-top:14px; display:flex; flex-wrap:wrap; gap:8px; padding-left:42px; }
+.s6 .card .tags span{ font-size:14px; font-weight:600; color:var(--grey); background:#fff; border:1px solid var(--grey-line); border-radius:8px; padding:4px 10px; }
+.s6 .card.lvl1{ opacity:.82; }
+.s6 .card.lvl2{ border-color:var(--blue); box-shadow:0 4px 18px rgba(41,82,227,.12); }
+.s6 .card.lvl2 .badge-num{ background:var(--blue); color:#fff; }
+.s6 .card.lvl2 .pill{ background:var(--coral); color:#fff; border-color:var(--coral); }
+.s6 .card.lvl3{ border-color:#8B5CF6; box-shadow:0 4px 18px rgba(139,92,246,.12); }
+.s6 .card.lvl3 .badge-num{ background:#8B5CF6; color:#fff; }
+.s6 .card.lvl3 .pill{ background:#F1ECFF; color:#6D3FD1; border-color:#DCCCFF; }
+
+/* ===== S7 5 shifts X->Y rows ===== */
+.s7{ background:var(--bg-soft); }
+.s7 .head{ position:absolute; top:72px; left:64px; font-size:42px; font-weight:800; }
+.s7 .head .note{ display:block; margin-top:8px; font-size:16px; font-weight:600; color:var(--grey); letter-spacing:.01em; }
+.s7 .rows{ position:absolute; left:64px; right:64px; top:190px; display:flex; flex-direction:column; gap:18px; }
+.s7 .row{ background:#fff; border-radius:16px; padding:22px 32px; display:flex; align-items:center; gap:24px; box-shadow:0 2px 10px rgba(20,30,60,.05); }
+.s7 .row .tag{ font-size:17px; font-weight:800; color:#fff; background:var(--ink-soft); border-radius:8px; padding:6px 12px; letter-spacing:.04em; }
+.s7 .row .from{ font-size:25px; color:var(--grey); font-weight:600; min-width:180px; }
+.s7 .row .arrow{ font-size:26px; color:var(--blue); font-weight:800; }
+.s7 .row .to{ font-size:27px; color:var(--ink); font-weight:800; flex:1; }
+.s7 .row .to .accent{ color:var(--blue); }
+.s7 .row .tool{ font-size:17px; color:var(--grey); font-weight:600; background:var(--pastel-blue); padding:6px 12px; border-radius:8px; white-space:nowrap; }
+.s7 .row.dark{ background:var(--ink); }
+.s7 .row.dark .tag{ background:rgba(255,255,255,.15); color:#fff; }
+.s7 .row.dark .from{ color:rgba(255,255,255,.5); }
+.s7 .row.dark .to{ color:#fff; }
+.s7 .row.dark .to .accent{ color:var(--cyan); }
+
+/* ===== Shift detail slides (full-bleed impact) — shared by S7a-d, S8 ===== */
+.shift-impact{ background:linear-gradient(135deg,var(--blue-deep) 0%, var(--blue) 60%, #3A6CF0 100%); color:#fff; }
+.shift-impact .label{ position:absolute; top:84px; left:64px; }
+.shift-impact .wrap{ position:absolute; left:64px; right:64px; top:170px; }
+.shift-impact .head{ font-size:58px; font-weight:800; line-height:1.25; }
+.shift-impact .head .from{ color:rgba(255,255,255,.5); }
+.shift-impact .head .to{ color:#fff; }
+.shift-impact .desc{ margin-top:26px; font-size:26px; color:rgba(255,255,255,.85); line-height:1.55; max-width:1200px; }
+.shift-impact .em{ color:#fff; font-weight:800; }
+.shift-impact .tags{ margin-top:26px; display:flex; gap:12px; flex-wrap:wrap; }
+.shift-impact .tags span{ font-size:16px; font-weight:700; color:#fff; background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.25); border-radius:20px; padding:7px 16px; }
+
+/* ===== S8 — gatekeeper/governor process diagram ===== */
+.s8 .wrap{ display:flex; flex-direction:column; gap:14px; top:130px; bottom:96px; }
+.s8 .head{ font-size:40px; flex:0 0 auto; }
+.s8 .toprow,.s8 .airow{ border-radius:14px; padding:16px 22px; flex:0 0 auto; }
+.s8 .toprow{ background:rgba(255,90,95,.14); border:1px solid rgba(255,90,95,.4); }
+.s8 .airow{ background:rgba(47,190,126,.14); border:1px solid rgba(47,190,126,.4); }
+.s8 .rowhead{ font-size:13px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; margin-bottom:14px; }
+.s8 .toprow .rowhead{ color:#FFB4B6; }
+.s8 .airow .rowhead{ color:#9CEFC4; }
+.s8 .stepsline{ display:flex; align-items:center; gap:10px; }
+.s8 .stepcol{ display:flex; flex-direction:column; align-items:center; gap:8px; }
+.s8 .pill{ background:rgba(255,255,255,.95); color:var(--ink); font-weight:800; font-size:16px; border-radius:10px; padding:10px 18px; text-align:center; white-space:nowrap; }
+.s8 .pill.judge{ background:var(--navy); color:#fff; border:1px solid var(--cyan); }
+.s8 .pill .sub{ display:block; margin-top:3px; font-size:11px; font-weight:600; color:var(--grey); }
+.s8 .pill.judge .sub{ color:var(--cyan); }
+.s8 .hbadge{ width:24px; height:24px; border-radius:50%; border:2px solid rgba(255,90,95,.6); color:#FFB4B6; font-size:11px; font-weight:800; display:flex; align-items:center; justify-content:center; }
+.s8 .arrow2{ color:rgba(255,255,255,.45); font-size:18px; font-weight:800; }
+.s8 .note{ margin-left:14px; background:rgba(255,255,255,.1); border:1px solid rgba(255,90,95,.4); border-radius:10px; padding:11px 16px; font-size:13px; font-weight:700; color:#FFE1E2; white-space:nowrap; }
+.s8 .bottomrow{ display:flex; gap:20px; flex:1; min-height:0; }
+.s8 .tools3{ flex:1.3; display:flex; gap:14px; }
+.s8 .tcard{ flex:1; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.18); border-radius:12px; padding:16px 18px; display:flex; flex-direction:column; justify-content:center; }
+.s8 .tcard .tt{ font-size:16px; font-weight:800; color:#fff; }
+.s8 .tcard .ts{ margin-top:6px; font-size:13px; color:rgba(255,255,255,.65); line-height:1.5; }
+.s8 .gap8{ flex:1; border:1.5px dashed rgba(243,169,59,.6); background:rgba(243,169,59,.14); border-radius:12px; padding:16px 20px; display:flex; flex-direction:column; justify-content:center; }
+.s8 .gap8 .gt{ font-size:12px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:#FFD27A; margin-bottom:8px; }
+.s8 .gap8 .gd{ font-size:13px; color:rgba(255,255,255,.8); line-height:1.5; }
+.s8 .gap8 .ga{ margin-top:10px; font-size:13px; font-weight:700; color:#fff; }
+
+/* ===== Shift detail slides (light, visual diagrams) — S7b, S7c, S7d ===== */
+.shift-light{ background:var(--white); }
+.shift-light .topline{ position:absolute; top:60px; left:64px; right:64px; display:flex; align-items:center; gap:18px; }
+.shift-light .topline .badge{ font-size:16px; font-weight:800; color:#fff; padding:8px 18px; border-radius:8px; letter-spacing:.04em; white-space:nowrap; }
+.shift-light .topline .ttl{ font-size:30px; font-weight:700; color:var(--grey); }
+.shift-light .topline .ttl .accent{ font-weight:800; }
+.shift-light .panels{ position:absolute; left:64px; right:64px; top:150px; bottom:56px; display:flex; gap:32px; }
+.shift-light .panel{ flex:1; display:flex; flex-direction:column; min-width:0; justify-content:center; }
+.shift-light .panel .ph{ font-size:15px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--grey); margin-bottom:14px; }
+
+/* S7b — sequential vs parallel (blue impact theme, unified with S8/S12) */
+.s7b .head7b{ position:absolute; top:170px; left:64px; right:64px; font-size:44px; font-weight:800; color:#fff; }
+.s7b .head7b .accent{ color:var(--cyan); }
+.s7b .diagram{ position:absolute; left:64px; right:64px; top:250px; bottom:56px; display:flex; gap:32px; }
+.s7b .col{ flex:1; display:flex; flex-direction:column; justify-content:center; min-width:0; }
+.s7b .colhead{ font-size:15px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,.55); margin-bottom:14px; }
+.s7b .steplist{ display:flex; flex-direction:column; gap:9px; }
+.s7b .step{ background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.18); border-radius:10px; padding:13px 18px; font-size:19px; font-weight:700; color:#fff; }
+.s7b .warn{ margin-top:14px; background:rgba(255,90,95,.16); border:1px solid rgba(255,90,95,.4); color:#FFE1E2; font-weight:700; font-size:16px; border-radius:10px; padding:13px 18px; }
+.s7b .native{ display:flex; flex-direction:column; gap:10px; }
+.s7b .ncard{ border-radius:12px; padding:14px 18px; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.18); }
+.s7b .ncard.accent-card{ border-color:var(--cyan); background:rgba(95,208,255,.14); }
+.s7b .ncard .nt{ font-size:18px; font-weight:800; color:#fff; }
+.s7b .ncard .ns{ margin-top:4px; font-size:14px; color:rgba(255,255,255,.65); }
+.s7b .row3{ display:flex; gap:10px; }
+.s7b .row3 .ncard{ flex:1; text-align:center; }
+.s7b .gap{ margin-top:6px; border:1.5px dashed rgba(243,169,59,.6); background:rgba(243,169,59,.14); border-radius:10px; padding:12px 16px; font-size:15px; color:#FFE3B0; }
+.s7b .gap strong{ color:#FFD27A; }
+
+/* S7c — review quality bar chart (blue impact theme, unified with S8/S12) */
+.s7c .head7c{ position:absolute; top:170px; left:64px; right:64px; font-size:44px; font-weight:800; color:#fff; }
+.s7c .head7c .accent{ color:var(--cyan); }
+.s7c .diagram{ position:absolute; left:64px; right:64px; top:250px; bottom:100px; display:flex; gap:32px; }
+.s7c .col{ flex:1; display:flex; flex-direction:column; justify-content:center; min-width:0; }
+.s7c .colhead{ font-size:15px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,.55); margin-bottom:14px; }
+.s7c .chartbox{ background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.18); border-radius:16px; padding:24px 22px 16px; flex:1; display:flex; flex-direction:column; }
+.s7c .barchart{ flex:1; display:flex; align-items:flex-end; justify-content:space-between; gap:14px; padding:0 4px; }
+.s7c .barwrap{ display:flex; flex-direction:column; align-items:center; flex:1; height:100%; justify-content:flex-end; }
+.s7c .barwrap .bar{ width:100%; border-radius:8px 8px 0 0; display:flex; align-items:flex-start; justify-content:center; padding-top:8px; font-size:16px; font-weight:800; color:#fff; }
+.s7c .barwrap .day{ margin-top:8px; font-size:15px; font-weight:700; color:rgba(255,255,255,.85); }
+.s7c .bar.b1{ background:#2FBE7E; }
+.s7c .bar.b2{ background:#7FDDB0; }
+.s7c .bar.b3{ background:var(--amber); }
+.s7c .bar.b4{ background:#F08B3B; }
+.s7c .bar.b5{ background:var(--coral); }
+.s7c .bar.b6{ background:var(--cyan); }
+.s7c .note{ margin-top:14px; background:rgba(255,255,255,.08); border-left:4px solid var(--cyan); border-radius:0 10px 10px 0; padding:12px 16px; font-size:15px; color:rgba(255,255,255,.85); }
+.s7c .note strong{ color:#fff; }
+.s7c .blind{ display:flex; gap:14px; }
+.s7c .bcard{ flex:1; border-radius:14px; padding:18px 20px; }
+.s7c .bcard.sees{ background:rgba(47,190,126,.16); border:1px solid rgba(47,190,126,.45); }
+.s7c .bcard.blind2{ background:rgba(255,90,95,.16); border:1px solid rgba(255,90,95,.45); }
+.s7c .bcard .bt{ font-size:18px; font-weight:800; color:#fff; margin-bottom:10px; }
+.s7c .bcard ul{ margin:0; padding:0; list-style:none; }
+.s7c .bcard li{ font-size:14px; color:rgba(255,255,255,.8); line-height:1.7; padding-left:18px; position:relative; }
+.s7c .bcard.sees li::before{ content:'●'; position:absolute; left:0; color:#7FDDB0; font-size:9px; top:5px; }
+.s7c .bcard.blind2 li::before{ content:'✗'; position:absolute; left:0; color:#FF9DA0; font-size:12px; }
+.s7c .answer{ margin-top:14px; background:rgba(6,12,28,.45); border:1px solid rgba(255,255,255,.15); border-radius:14px; padding:18px 22px; flex:1; display:flex; flex-direction:column; justify-content:center; }
+.s7c .answer .al{ font-size:12px; font-weight:700; letter-spacing:.08em; color:var(--cyan); text-transform:uppercase; }
+.s7c .answer .at{ margin-top:8px; font-size:21px; font-weight:800; color:#fff; }
+.s7c .answer .atags{ margin-top:12px; display:flex; gap:8px; flex-wrap:wrap; }
+.s7c .answer .atags span{ font-size:12px; font-weight:700; color:#cbd3e6; background:rgba(255,255,255,.14); border-radius:8px; padding:5px 10px; }
+.s7c .answer .aq{ margin-top:12px; font-size:14px; font-style:italic; color:var(--amber); }
+
+/* S7d — knowledge problem/solution (blue impact theme, unified with S8/S12) */
+.s7d .head7d{ position:absolute; top:170px; left:64px; right:64px; font-size:44px; font-weight:800; color:#fff; }
+.s7d .head7d .accent{ color:var(--cyan); }
+.s7d .diagram{ position:absolute; left:64px; right:64px; top:250px; bottom:56px; display:flex; gap:32px; }
+.s7d .col{ flex:1; display:flex; flex-direction:column; justify-content:center; min-width:0; }
+.s7d .colhead{ font-size:15px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,.55); margin-bottom:14px; }
+.s7d .problem{ background:rgba(255,90,95,.14); border:1px solid rgba(255,90,95,.4); border-radius:16px; padding:22px 24px; }
+.s7d .problem .pt{ font-size:19px; font-weight:800; color:#fff; }
+.s7d .problem .ps{ margin-top:8px; font-size:15px; color:rgba(255,255,255,.75); }
+.s7d .chiprow{ margin-top:14px; display:flex; gap:10px; flex-wrap:wrap; }
+.s7d .chiprow .c{ background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.25); border-radius:10px; padding:10px 14px; flex:1; min-width:110px; }
+.s7d .chiprow .c .ct{ font-size:14px; font-weight:800; color:#fff; }
+.s7d .chiprow .c .cs{ font-size:11px; color:rgba(255,255,255,.6); margin-top:2px; }
+.s7d .warn2{ margin-top:14px; background:rgba(255,90,95,.16); border:1px solid rgba(255,90,95,.4); color:#FFE1E2; font-weight:700; font-size:14px; border-radius:10px; padding:12px 16px; }
+.s7d .sol1{ background:rgba(139,92,246,.16); border:1px solid rgba(139,92,246,.5); border-radius:16px; padding:20px 22px; }
+.s7d .sol1 .srow{ display:flex; justify-content:space-between; align-items:center; }
+.s7d .sol1 .st{ font-size:19px; font-weight:800; color:#fff; }
+.s7d .sol1 .stag{ font-size:12px; font-weight:700; color:#fff; background:#8B5CF6; border-radius:14px; padding:4px 10px; }
+.s7d .sol1 .sq{ margin-top:12px; background:rgba(255,255,255,.1); border-radius:8px; padding:10px 14px; font-size:14px; font-style:italic; color:rgba(255,255,255,.85); }
+.s7d .sol1 .sa{ margin-top:8px; background:#8B5CF6; color:#fff; border-radius:8px; padding:10px 14px; font-size:14px; font-weight:700; }
+.s7d .sol2{ margin-top:14px; border:1.5px dashed rgba(243,169,59,.6); background:rgba(243,169,59,.14); border-radius:16px; padding:18px 22px; }
+.s7d .sol2 .srow{ display:flex; justify-content:space-between; align-items:center; }
+.s7d .sol2 .st{ font-size:19px; font-weight:800; color:#fff; }
+.s7d .sol2 .stag{ font-size:12px; font-weight:700; color:#3A2900; background:#FCE7B5; border-radius:14px; padding:4px 10px; }
+.s7d .sol2 .srows{ margin-top:12px; display:flex; flex-direction:column; gap:8px; }
+.s7d .sol2 .srows .r{ display:flex; align-items:center; gap:8px; font-size:14px; }
+.s7d .sol2 .srows .r .from2{ color:rgba(255,255,255,.75); flex:1; }
+.s7d .sol2 .srows .r .to2{ color:#FFD27A; font-weight:700; flex:1; }
+
+/* ===== S9 scale problem + 6 tools ===== */
+.s9{ background:var(--white); }
+.s9 .head{ position:absolute; top:64px; left:64px; right:64px; font-size:36px; font-weight:800; line-height:1.4; }
+.s9 .head .accent{ color:var(--blue); }
+.s9 .chips{ position:absolute; left:64px; right:64px; top:220px; display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+.s9 .chip{ background:var(--bg-soft); border-radius:16px; padding:26px 26px; border:1px solid var(--grey-line); }
+.s9 .chip .ttl{ font-size:25px; font-weight:800; color:var(--ink); }
+.s9 .chip .stat{ margin-top:10px; font-size:19px; font-weight:700; color:var(--blue); }
+.s9 .chip .desc{ margin-top:8px; font-size:18px; color:var(--grey); line-height:1.5; }
+.s9 .tag-internal{ position:absolute; right:64px; top:178px; font-size:15px; font-weight:700; color:var(--grey); background:var(--pastel-blue); padding:6px 12px; border-radius:8px; }
+
+/* ===== S10 hallucination CI code card ===== */
+.s10{ background:var(--bg-soft); }
+.s10 .left{ position:absolute; left:64px; top:120px; width:46%; }
+.s10 .left .label{ margin-bottom:18px; }
+.s10 .left .head{ font-size:40px; font-weight:800; line-height:1.35; }
+.s10 .left .desc{ margin-top:18px; font-size:21px; color:var(--ink-soft); line-height:1.6; }
+.s10 .left .small{ margin-top:22px; font-size:18px; color:var(--grey); }
+.s10 .right{ position:absolute; right:64px; top:150px; width:42%; }
+.s10 .code{ background:var(--ink); border-radius:16px; padding:26px 28px; font-family:'SF Mono',Menlo,Consolas,monospace; font-size:19px; color:#cbd3e6; line-height:1.9; }
+.s10 .code .ln{ display:flex; gap:14px; }
+.s10 .code .ok{ color:#7CD8A0; }
+.s10 .code .bad{ color:var(--coral); font-weight:700; }
+.s10 .code .arrow2{ color:#7C8499; }
+.s10 .callout{ margin-top:20px; background:var(--pastel-peach); border-radius:14px; padding:18px 22px; font-size:20px; font-weight:700; color:#8A3A1F; }
+
+/* ===== S11 honest scorecard 3-col ===== */
+.s11{ background:var(--white); }
+.s11 .head{ position:absolute; top:72px; left:64px; font-size:42px; font-weight:800; }
+.s11 .cols{ position:absolute; left:64px; right:64px; top:190px; display:flex; gap:24px; }
+.s11 .col{ flex:1; border-radius:18px; padding:30px 26px; background:var(--bg-soft); border-top:6px solid var(--grey-line); }
+.s11 .col.real{ border-top-color:var(--green); }
+.s11 .col.fast{ border-top-color:var(--amber); }
+.s11 .col.hype{ border-top-color:var(--coral); }
+.s11 .col .ttl{ font-size:26px; font-weight:800; }
+.s11 .col.real .ttl{ color:#1F9C63; }
+.s11 .col.fast .ttl{ color:#B8800F; }
+.s11 .col.hype .ttl{ color:#D43A3F; }
+.s11 .col ul{ margin:18px 0 0; padding:0; list-style:none; }
+.s11 .col li{ font-size:19px; color:var(--ink-soft); line-height:1.6; margin-bottom:12px; padding-left:18px; position:relative; }
+.s11 .col li::before{ content:'—'; position:absolute; left:0; color:var(--grey); }
+
+/* ===== S12 identity statement ===== */
+.s12{ background:var(--navy); }
+.s12 .blob.b1{ width:900px; height:900px; top:-280px; right:-260px; }
+.s12 .wrap{ position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:0 110px; }
+.s12 .head{ font-size:48px; font-weight:800; line-height:1.5; color:#fff; }
+.s12 .head .accent{ color:var(--cyan); }
+.s12 .sub{ margin-top:34px; font-size:28px; color:rgba(255,255,255,.8); line-height:1.65; font-weight:500; }
+.s12 .sub .role{ color:#fff; font-weight:800; }
+
+/* ===== S12b action call ===== */
+.s12b{ background:var(--navy); }
+.s12b .head{ position:absolute; top:88px; left:64px; right:64px; font-size:42px; font-weight:800; color:#fff; text-align:center; }
+.s12b .cols{ position:absolute; left:64px; right:64px; top:230px; display:flex; gap:32px; }
+.s12b .col{ flex:1; border-radius:20px; padding:36px 34px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); }
+.s12b .col .tag{ font-size:17px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--cyan); }
+.s12b .col .ttl{ margin-top:14px; font-size:30px; font-weight:800; color:#fff; line-height:1.4; }
+.s12b .col .desc{ margin-top:16px; font-size:20px; color:rgba(255,255,255,.75); line-height:1.65; }
+.s12b .col .desc .em{ color:#fff; font-weight:700; }
+
+/* ===== fullscreen toggle button ===== */
+#fs-btn{
+  position:fixed; right:22px; bottom:22px; z-index:9999;
+  width:40px; height:40px; border-radius:50%;
+  background:rgba(20,26,46,.55); border:1px solid rgba(255,255,255,.18);
+  display:flex; align-items:center; justify-content:center; cursor:pointer;
+  opacity:.35; transition:opacity .25s ease, background .2s ease;
+  color:#fff;
+}
+#fs-btn:hover, #fs-btn:focus-visible{ opacity:1; background:rgba(20,26,46,.85); }
+#fs-btn svg{ width:18px; height:18px; pointer-events:none; }
+
+/* ===== S13 closing ===== */
+.s13{ background:var(--navy); }
+.s13 .wrap{ position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; }
+.s13 .l1{ font-size:34px; font-weight:600; color:rgba(255,255,255,.45); }
+.s13 .l2{ margin-top:18px; font-size:68px; font-weight:800; color:#fff; }
+.s13 .l2 .accent{ color:var(--cyan); }
+.s13 .l3{ margin-top:38px; font-size:24px; color:rgba(255,255,255,.6); line-height:1.6; }
+.s13 .thanks{ margin-top:56px; font-size:28px; font-weight:700; color:rgba(255,255,255,.85); letter-spacing:.02em; }
+</style>
+</head>
+<body>
+
+<deck-stage width="1920" height="1080">
+
+<!-- S1 — 타이틀 -->
+<section id="s1" class="s1 theme-blue" data-label="타이틀">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="wrap">
+    <div class="kicker">Okta Professional Network Night · Brisbane</div>
+    <h1 class="head">AI 시대에 직장인 <span class="hl">〈서바이벌〉</span> 전략</h1>
+    <p class="sub">AI가 당신의 일자리를 대체하지 않는다 — <span class="hl2">AI를 잘 다루는 사람이 대체한다</span></p>
+  </div>
+  <div class="foot">Daehwa Seo · Atlassian Software Engineer</div>
+</section>
+
+<!-- S2 — +56% -->
+<section id="s2" class="s2" data-label="+56%">
+  <div class="wrap">
+    <div class="mega" data-count="56" data-suffix="%" data-prefix="+">+56%</div>
+    <div class="mega-sub">AI 스킬을 요구하는 직무의 임금 프리미엄</div>
+    <div class="build flip">그런데 채용은 줄고 있다</div>
+    <div class="build flip-sub">시장이 둘로 갈라지고 있습니다</div>
+  </div>
+  <div class="src">출처: PwC, 2025 Global AI Jobs Barometer</div>
+  <div class="indicator"><span class="on">①</span><span>②</span><span>③</span><span>④</span><span>⑤</span></div>
+</section>
+
+<!-- S3 — Replit 인용 -->
+<section id="s3" class="s3" data-label="AI 사고">
+  <div class="wrap">
+    <div class="mark">&ldquo;</div>
+    <div class="q-en">I destroyed months of work in seconds.</div>
+    <div class="q-ko">제가 몇 달간의 작업을, 몇 초 만에 파괴했습니다.</div>
+    <div class="credit">Replit AI · 2025.7</div>
+  </div>
+  <div class="indicator"><span>①</span><span class="on">②</span><span>③</span><span>④</span><span>⑤</span></div>
+</section>
+
+<!-- S4 — 가치의 이동 -->
+<section id="s4" class="s4" data-label="가치의 이동">
+  <div class="head">가치의 이동</div>
+  <div class="vs">
+    <div class="vcol down">
+      <div class="tag">하락 ↓</div>
+      <div class="ttl">테크니컬 스킬</div>
+      <div class="desc">문법·API 암기 — 이제 'AI 인턴의 일'</div>
+    </div>
+    <div class="vcol up">
+      <div class="tag">상승 ↑</div>
+      <div class="ttl">로지컬 씽킹 · 이해<br><span style="font-size:.6em;opacity:.85;">(understanding)</span></div>
+      <div class="desc">무엇을, 왜, 어떤 순서로 — 그리고 결과를 내가 이해하는가</div>
+    </div>
+  </div>
+  <div class="arrow">→</div>
+  <div class="indicator"><span>①</span><span>②</span><span class="on">③</span><span>④</span><span>⑤</span></div>
+</section>
+
+<!-- S5 — Karpathy 결정타 -->
+<section id="s5" class="s5" data-label="Karpathy 인용">
+  <div class="wrap">
+    <div class="q1">생각은 아웃소싱할 수 있어도,</div>
+    <div class="q2">이해는 아웃소싱할 수 없다.</div>
+  </div>
+  <div class="credit">— Andrej Karpathy</div>
+  <div class="indicator"><span>①</span><span>②</span><span class="on">③</span><span>④</span><span>⑤</span></div>
+</section>
+
+<!-- S6 — AI 성숙도 모델 -->
+<section id="s6" class="s6" data-label="성숙도 모델">
+  <div class="left">
+    <div class="label">AI 성숙도 모델</div>
+    <div class="head1">대부분 조직은 1단계에 머물러 있다</div>
+    <div class="head2">그런데 3단계라고 부른다</div>
+    <div class="desc">스스로 인식하는 단계와 실제 일하는 방식 사이의 격차 — 그 격차가 지금 엔지니어링 조직에서 가장 비용이 큰 착각입니다.</div>
+    <div class="quote">
+      <div class="qlabel">Atlassian Internal Mandate</div>
+      "Atlassian은 지금 진짜로 3단계로 이동 중입니다 — 그 격차를 메우는 인프라를 직접 만듭니다."
+    </div>
+  </div>
+  <div class="right">
+    <div class="card lvl1 build">
+      <div class="crow">
+        <div class="badge-num">1</div>
+        <div class="ctitle">AI 지원 (Assisted)</div>
+        <div class="pill">대부분 조직이 여기</div>
+      </div>
+      <div class="cdesc">더 빠른 키보드. 일하는 방식 자체는 그대로.</div>
+      <div class="tags"><span>자동완성</span><span>코드 제안</span></div>
+    </div>
+    <div class="card lvl2 build">
+      <div class="crow">
+        <div class="badge-num">2</div>
+        <div class="ctitle">AI 증강 (Augmented)</div>
+        <div class="pill">빠르게 성장 중</div>
+      </div>
+      <div class="cdesc">작업 '단위'를 AI가. 프로세스 자체는 그대로.</div>
+      <div class="tags"><span>Rovo Chat</span><span>Cursor</span><span>함수 작성</span><span>테스트 생성</span></div>
+    </div>
+    <div class="card lvl3 build">
+      <div class="crow">
+        <div class="badge-num">3</div>
+        <div class="ctitle">AI 네이티브 (Native)</div>
+        <div class="pill">리더들이 가는 곳</div>
+      </div>
+      <div class="cdesc">프로세스 자체를 AI 역량에 맞춰 재설계.</div>
+      <div class="tags"><span>Plan</span><span>Design</span><span>Code</span><span>Test</span><span>Review</span><span>Deploy</span><span>Monitor</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- S7 — 5가지 변화 (a)~(d) -->
+<section id="s7" class="s7" data-label="5가지 변화">
+  <div class="head">AI-Native SDLC의 5가지 변화<span class="note">SDLC = Software Development Life Cycle (소프트웨어 개발 생명주기)</span></div>
+  <div class="rows">
+    <div class="row build"><span class="tag">01</span><span class="from">Writing code</span><span class="arrow">→</span><span class="to">Specifying <span class="accent">intent</span></span></div>
+    <div class="row build"><span class="tag">02</span><span class="from">Sequential work</span><span class="arrow">→</span><span class="to"><span class="accent">Parallel</span> work</span></div>
+    <div class="row build"><span class="tag">03</span><span class="from">Reactive quality</span><span class="arrow">→</span><span class="to"><span class="accent">Predictive</span> quality</span><span class="tool">Rovo Dev · 내부 도구</span></div>
+    <div class="row build"><span class="tag">04</span><span class="from">Knowledge search</span><span class="arrow">→</span><span class="to"><span class="accent">Governance</span></span><span class="tool">Rovo Chat · 내부 도구</span></div>
+    <div class="row dark build"><span class="tag">05</span><span class="from">Human gatekeeper</span><span class="arrow">→</span><span class="to">Human <span class="accent">governor</span></span></div>
+  </div>
+  <div class="indicator"><span>①</span><span>②</span><span>③</span><span class="on">④</span><span>⑤</span></div>
+</section>
+
+<!-- S7a — (a) 산출물이 '코드'에서 '의도'로 -->
+<section id="s7a" class="s7a shift-impact" data-label="의도 명세">
+  <div class="label">SHIFT 01</div>
+  <div class="wrap">
+    <div class="head"><span class="from">Writing code</span> → <span class="to">Specifying <span class="accent">intent</span></span></div>
+    <div class="desc build">"로그인 API 짜줘"처럼 막연한 요청은, 대개 우리 상황엔 안 맞아서 세 번쯤 고치게 됩니다.</div>
+    <div class="desc build">"표준 미들웨어 패턴으로, 입력은 Zod 스키마로 검증하고, 만료된 토큰 같은 엣지 케이스까지 처리해줘" — 제약과 성공 기준을 분명히 하면, 한 번에 우리 컨벤션에 맞는 결과가 나옵니다.</div>
+    <div class="tags build"><span><span class="em">Specification Engineering</span> — 문제를 잘게 쪼개고, 제약을 정의하는 일</span></div>
+  </div>
+  <div class="indicator"><span>①</span><span>②</span><span>③</span><span class="on">④</span><span>⑤</span></div>
+</section>
+
+<!-- S7b — (b) 순차 작업에서 병렬 작업으로 (블루 임팩트 톤, S8/S12와 통일) -->
+<section id="s7b" class="s7b shift-impact" data-label="병렬 작업">
+  <div class="label">SHIFT 02</div>
+  <div class="head7b">Sequential work → <span class="accent">Parallel</span> work</div>
+  <div class="diagram">
+    <div class="col">
+      <div class="colhead">전통적 방식 · 단계마다 기다린다</div>
+      <div class="steplist build">
+        <div class="step">Requirements</div>
+        <div class="step">Design</div>
+        <div class="step">Code</div>
+        <div class="step">Test</div>
+        <div class="step">Review</div>
+        <div class="step">Deploy</div>
+      </div>
+      <div class="warn build">단계마다 사람 손을 거치는 인수인계(handoff) = 느린 배포</div>
+    </div>
+    <div class="col">
+      <div class="colhead">AI 네이티브 · 동시에 진행된다</div>
+      <div class="native">
+        <div class="ncard build"><div class="nt">사람이 Jira에 의도를 정의</div><div class="ns">Rovo Dev에 티켓 할당 → AI 에이전트가 작업 시작</div></div>
+        <div class="row3 build">
+          <div class="ncard"><div class="nt">AI가 코드 작성</div><div class="ns">동시 진행</div></div>
+          <div class="ncard"><div class="nt">AI가 테스트 작성</div><div class="ns">동시 진행</div></div>
+          <div class="ncard"><div class="nt">AI가 PR 리뷰</div><div class="ns">동시 진행</div></div>
+        </div>
+        <div class="ncard accent-card build"><div class="nt">사람의 판단 + 승인</div><div class="ns">기계적 체크가 아니라, 진짜 결정 지점에서만</div></div>
+        <div class="ncard build"><div class="nt">자동 배포 + AI 모니터링</div></div>
+        <div class="gap build"><strong>규모의 한계:</strong> 1억 줄 코드베이스에서 grep만으론 에이전트가 헤맵니다 — 시맨틱 검색이 필수입니다.</div>
+      </div>
+    </div>
+  </div>
+  <div class="indicator"><span>①</span><span>②</span><span>③</span><span class="on">④</span><span>⑤</span></div>
+</section>
+
+<!-- S7c — (c) 반응형 품질에서 예측형 품질로 (블루 임팩트 톤, S8/S12와 통일) -->
+<section id="s7c" class="s7c shift-impact" data-label="예측형 품질">
+  <div class="label">SHIFT 03</div>
+  <div class="head7c">Reactive quality → <span class="accent">Predictive</span> quality</div>
+  <div class="diagram">
+    <div class="col">
+      <div class="colhead">사람 리뷰 품질 — 한 주간</div>
+      <div class="chartbox build">
+        <div class="barchart">
+          <div class="barwrap"><div class="bar b1" style="height:100%;">92%</div><span class="day">월</span></div>
+          <div class="barwrap"><div class="bar b2" style="height:85%;">78%</div><span class="day">화</span></div>
+          <div class="barwrap"><div class="bar b3" style="height:88%;">81%</div><span class="day">수</span></div>
+          <div class="barwrap"><div class="bar b4" style="height:48%;">44%</div><span class="day">목</span></div>
+          <div class="barwrap"><div class="bar b5" style="height:24%;">22%</div><span class="day">금</span></div>
+          <div class="barwrap"><div class="bar b6" style="height:100%;">92%</div><span class="day">AI</span></div>
+        </div>
+      </div>
+      <div class="note build"><strong>AI 리뷰 = 항상 같은 품질.</strong> 피로도 없고, 마감 압박도 없습니다.</div>
+    </div>
+    <div class="col">
+      <div class="colhead">그런데, 자동 리뷰에도 사각지대가 있다</div>
+      <div class="blind build">
+        <div class="bcard sees"><div class="bt">AI가 보는 것</div><ul><li>이 PR의 코드</li><li>스타일 · 보안 패턴</li><li>테스트 커버리지 공백</li><li>알려진 안티패턴</li></ul></div>
+        <div class="bcard blind2"><div class="bt">AI가 모르는 것</div><ul><li>이 코드가 왜 존재하는지</li><li>과거 팀의 결정</li><li>장애의 근본 원인</li><li>아키텍처 컨텍스트</li></ul></div>
+      </div>
+      <div class="answer build">
+        <div class="al">내부 도구로 보완</div>
+        <div class="at">PR Knowledge Graph</div>
+        <div class="atags"><span>PR 이력</span><span>리뷰 코멘트</span><span>과거 결정</span><span>파일 계보</span></div>
+        <div class="aq">"이 패턴은 이 파일에서 8번 지적됐습니다 — 이유는 이렇습니다."</div>
+      </div>
+    </div>
+  </div>
+  <div class="indicator"><span>①</span><span>②</span><span>③</span><span class="on">④</span><span>⑤</span></div>
+</section>
+
+<!-- S7d — (d) 지식 '검색'에서 '거버넌스'로 (블루 임팩트 톤, S8/S12와 통일) -->
+<section id="s7d" class="s7d shift-impact" data-label="거버넌스">
+  <div class="label">SHIFT 04</div>
+  <div class="head7d">Knowledge search → <span class="accent">Governance</span></div>
+  <div class="diagram">
+    <div class="col">
+      <div class="colhead">문제</div>
+      <div class="problem build">
+        <div class="pt">AI 코딩 에이전트: "우리 컨벤션을 지켜줘"</div>
+        <div class="ps">근데 그 컨벤션을, AI는 볼 수가 없습니다:</div>
+        <div class="chiprow">
+          <div class="c"><div class="ct">ADR</div><div class="cs">Confluence, 2022</div></div>
+          <div class="c"><div class="ct">패키지 경계</div><div class="cs">구조 그래프</div></div>
+          <div class="c"><div class="ct">보안 표준</div><div class="cs">위키 버전 3개</div></div>
+          <div class="c"><div class="ct">PR 이력</div><div class="cs">Bitbucket diff</div></div>
+        </div>
+      </div>
+      <div class="warn2 build">뉘앙스는 풍부한데 — 코드 작성 시점엔 완전히 안 보입니다.</div>
+    </div>
+    <div class="col">
+      <div class="colhead">해결 — 두 개의 레이어</div>
+      <div class="sol1 build">
+        <div class="srow"><div class="st">Rovo Chat</div><div class="stag">Atlassian 제품</div></div>
+        <div class="sq">"결제 재시도는 어떻게 동작해?"</div>
+        <div class="sa">Confluence + Jira 기반으로 몇 초 안에 근거 있는 답</div>
+      </div>
+      <div class="sol2 build">
+        <div class="srow"><div class="st">Code Governance Engine</div><div class="stag">내부 · 진행중</div></div>
+        <div class="srows">
+          <div class="r"><span class="from2">Confluence의 ADR</span><span class="to2">→ 모든 에이전트가 실시간 참조</span></div>
+          <div class="r"><span class="from2">패키지 경계</span><span class="to2">→ 코드 작성 전에 강제</span></div>
+          <div class="r"><span class="from2">새 보안 표준</span><span class="to2">→ 몇 분 안에 모든 에이전트 갱신</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="indicator"><span>①</span><span>②</span><span>③</span><span class="on">④</span><span>⑤</span></div>
+</section>
+
+<!-- S8 — 게이트키퍼 → 거버너 (단독, 풀블리드 블루) -->
+<section id="s8" class="s8 shift-impact" data-label="거버너">
+  <div class="label">SHIFT 05 · 오늘의 핵심</div>
+  <div class="wrap">
+    <div class="head"><span class="from">Gatekeeper</span> <span style="font-size:.45em;font-weight:700;opacity:.6;">(게이트키퍼)</span> → <span class="to">Governor</span> <span style="font-size:.45em;font-weight:700;opacity:.75;">(거버너)</span></div>
+
+    <div class="toprow build">
+      <div class="rowhead">TODAY — 사람이 모든 단계를 막는다</div>
+      <div class="stepsline">
+        <div class="stepcol"><div class="pill">Task</div><div class="hbadge">H</div></div>
+        <span class="arrow2">→</span>
+        <div class="stepcol"><div class="pill">Code</div><div class="hbadge">H</div></div>
+        <span class="arrow2">→</span>
+        <div class="stepcol"><div class="pill">Test</div><div class="hbadge">H</div></div>
+        <span class="arrow2">→</span>
+        <div class="stepcol"><div class="pill">Review</div><div class="hbadge">H</div></div>
+        <span class="arrow2">→</span>
+        <div class="stepcol"><div class="pill">Deploy</div><div class="hbadge">H</div></div>
+        <div class="note">매 핸드오프 = 지연 + 컨텍스트 전환</div>
+      </div>
+    </div>
+
+    <div class="airow build">
+      <div class="rowhead">AI-NATIVE — 사람은 판단 지점에만</div>
+      <div class="stepsline">
+        <div class="stepcol"><div class="pill">Task<span class="sub">Rovo Dev</span></div></div>
+        <span class="arrow2">→</span>
+        <div class="stepcol"><div class="pill">Code+Tests<span class="sub">AI 에이전트</span></div></div>
+        <span class="arrow2">→</span>
+        <div class="stepcol"><div class="pill">AI Review<span class="sub">Autoreview</span></div></div>
+        <span class="arrow2">→</span>
+        <div class="stepcol"><div class="pill judge">Judgment<span class="sub">사람</span></div></div>
+        <span class="arrow2">→</span>
+        <div class="stepcol"><div class="pill">Deploy<span class="sub">자동</span></div></div>
+      </div>
+    </div>
+
+    <div class="bottomrow build">
+      <div class="tools3">
+        <div class="tcard"><div class="tt">Rovo Dev</div><div class="ts">PR마다 자동으로 리뷰</div></div>
+        <div class="tcard"><div class="tt">Code Governance Engine</div><div class="ts">표준을 코드 작성 전에 강제</div></div>
+        <div class="tcard"><div class="tt">Hallucination Detection CI</div><div class="ts">머지 시점에 검증</div></div>
+      </div>
+      <div class="gap8">
+        <div class="gt">규모의 진짜 문제</div>
+        <div class="gd">수백 개 팀이 Cursor, Copilot, Codex, Claude Code 등 제각각 다른 도구를 씁니다. 도구별로는 감당이 안 됩니다.</div>
+        <div class="ga">우리의 답: 플랫폼 차원에서 한 번에 거버넌스를 거는 장치</div>
+      </div>
+    </div>
+  </div>
+  <div class="indicator"><span>①</span><span>②</span><span>③</span><span class="on">④</span><span>⑤</span></div>
+</section>
+
+<!-- S9 — 대규모의 진짜 문제 + 도구 6종 -->
+<section id="s9" class="s9" data-label="대규모 문제">
+  <div class="head">"AI는 Java는 알아도, <span class="accent">'우리 회사의 Java'</span>는 모른다"</div>
+  <div class="tag-internal">Atlassian 내부 도구</div>
+  <div class="chips">
+    <div class="chip build"><div class="ttl">Semantic Code Search</div><div class="stat">검색 시간 절반 이하로</div><div class="desc">의미로 코드를 찾는다 — AI가 헤매기를 멈춰서</div></div>
+    <div class="chip build"><div class="ttl">PR Knowledge Graph</div><div class="stat">과거 리뷰 맥락</div><div class="desc">"이 패턴은 작년에도 지적됐다" 맥락을 붙여준다</div></div>
+    <div class="chip build"><div class="ttl">Code Governance Engine</div><div class="stat">표준 강제</div><div class="desc">우리 아키텍처 결정을 AI에 실시간 연결</div></div>
+    <div class="chip build"><div class="ttl">Repo Mind</div><div class="stat">자동 브리핑</div><div class="desc">레포 이력에서 시니어처럼 '미리 공부'</div></div>
+    <div class="chip build"><div class="ttl">Skill Builder</div><div class="stat">대화 마이닝</div><div class="desc">반복 패턴을 재사용 가능한 스킬로 생성</div></div>
+    <div class="chip build"><div class="ttl">Hallucination Detection CI</div><div class="stat">머지 시점 검증</div><div class="desc">실제 서비스 카탈로그와 대조</div></div>
+  </div>
+  <div class="indicator"><span>①</span><span>②</span><span>③</span><span class="on">④</span><span>⑤</span></div>
+</section>
+
+<!-- S10 — 환각 탐지 CI 단독 -->
+<section id="s10" class="s10" data-label="환각 탐지 CI">
+  <div class="left">
+    <div class="label">내부 도구 · Atlassian 사내</div>
+    <div class="head">Hallucination Detection CI <span style="font-size:.6em;opacity:.7;">(환각 탐지 CI)</span></div>
+    <div class="desc">AI가 부른 내부 API를 실제 서비스 카탈로그와 대조합니다. 컴파일도 되고 테스트도 통과하는데 <strong>몇 주 뒤 터지는</strong> 버그를, 합치는 시점에 잡습니다.</div>
+    <div class="small">상용 대체재가 없어 직접 제작했습니다.</div>
+  </div>
+  <div class="right">
+    <div class="code">
+      <div class="ln"><span class="bad">POST /v1/score</span><span class="arrow2">→</span><span>오래전 폐기된 엔드포인트</span></div>
+    </div>
+    <div class="callout">컴파일 ✅ 테스트 ✅ — 그래도 틀렸다</div>
+  </div>
+  <div class="indicator"><span>①</span><span>②</span><span>③</span><span class="on">④</span><span>⑤</span></div>
+</section>
+
+<!-- S11 — 솔직한 성적표 -->
+<section id="s11" class="s11" data-label="솔직한 성적표">
+  <div class="head">솔직한 성적표</div>
+  <div class="cols">
+    <div class="col real build">
+      <div class="ttl">검증된 것</div>
+      <ul>
+        <li>코드 생성 · 자동완성</li>
+        <li>자동 리뷰 · 파이프라인</li>
+        <li>거대 코드베이스 시맨틱 검색</li>
+      </ul>
+    </div>
+    <div class="col fast build">
+      <div class="ttl">현실 (회사 공개치)</div>
+      <ul>
+        <li>PR 처리량 <strong>+19%</strong></li>
+        <li>주당 <strong>2~3시간</strong> 절약</li>
+      </ul>
+    </div>
+    <div class="col hype build">
+      <div class="ttl">과장된 것</div>
+      <ul>
+        <li>AI가 엔지니어를 대체한다 ❌</li>
+        <li>생산성 10배 ❌</li>
+        <li>AI 코드는 기본적으로 안전 ❌</li>
+      </ul>
+    </div>
+  </div>
+  <div class="indicator"><span>①</span><span>②</span><span>③</span><span class="on">④</span><span>⑤</span></div>
+</section>
+
+<!-- S12 — 정체성 선언 -->
+<section id="s12" class="s12 theme-dark" data-label="정체성 선언">
+  <div class="blob b1"></div>
+  <div class="wrap">
+    <div class="head">AI가 당신의 일자리를 대체하지 않는다.<br><span class="accent">AI를 잘 다루는 사람이 대체한다.</span></div>
+    <div class="sub build">스스로를 '일 배우는 주니어'로만 두지 마세요 — 당신은 AI라는 팀원을 지휘하는 <span class="role">리더</span></div>
+  </div>
+  <div class="indicator"><span>①</span><span>②</span><span>③</span><span>④</span><span class="on">⑤</span></div>
+</section>
+
+<!-- S12b — 오늘 당장 할 수 있는 행동 -->
+<section id="s12b" class="s12b theme-dark" data-label="행동 촉구">
+  <div class="head">오늘, 당장 할 수 있는 행동 하나</div>
+  <div class="cols">
+    <div class="col build">
+      <div class="tag">개발자라면</div>
+      <div class="ttl">반복하는 작업 하나를, 2주 동안 전부 AI로</div>
+      <div class="desc">빨리 하려는 게 아니라, AI가 <span class="em">어디서 돕고 어디서 실패하는지</span>를 알기 위해서요.</div>
+    </div>
+    <div class="col build">
+      <div class="tag">개발자가 아니어도</div>
+      <div class="ttl">내 일의 한 단계를 골라보세요</div>
+      <div class="desc">'AI가 정식 팀원이라면 이 단계를 <span class="em">어떻게 다시 그릴까</span>'를 한번 상상해 보세요.</div>
+    </div>
+  </div>
+  <div class="indicator"><span>①</span><span>②</span><span>③</span><span>④</span><span class="on">⑤</span></div>
+</section>
+
+<!-- S13 — 클로징 -->
+<section id="s13" class="s13" data-label="클로징">
+  <div class="wrap">
+    <div class="l1">AI를 두려워하는 사람이 아니라,</div>
+    <div class="l2">AI를 <span class="accent">지휘하는</span> 사람.</div>
+    <div class="l3 build">저는 그게 여러분이면 좋겠습니다. 그리고 지금이, 바로 그 출발선입니다.</div>
+    <div class="thanks build">감사합니다</div>
+  </div>
+</section>
+
+</deck-stage>
+
+<button id="fs-btn" type="button" aria-label="전체화면 전환 (F)" title="전체화면 (F)">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+</button>
+
+<script src="deck-stage.js"></script>
+<script>
+(() => {
+  const stage = document.querySelector('deck-stage');
+  const reveal = (slide) => {
+    if (!slide) return;
+    const builds = slide.querySelectorAll('.build');
+    builds.forEach((el) => el.classList.remove('in'));
+    builds.forEach((el, i) => {
+      setTimeout(() => el.classList.add('in'), 120 + i * 160);
+    });
+  };
+  stage.addEventListener('slidechange', (e) => reveal(e.detail.slide));
+  // connectedCallback may dispatch the initial 'slidechange' before this
+  // listener attaches, so explicitly reveal the slide that's active now.
+  customElements.whenDefined('deck-stage').then(() => {
+    requestAnimationFrame(() => {
+      reveal(stage.querySelector('section[data-deck-active]') || stage.querySelector('section'));
+    });
+  });
+
+  // Fullscreen presenting mode — toggled by the corner button or the F key.
+  // deck-stage has no native fullscreen call of its own; it just listens for
+  // __omelette_presenting on window 'message' to hide its rail/chrome, so we
+  // drive the actual Fullscreen API here and notify it via postMessage.
+  const fsBtn = document.getElementById('fs-btn');
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      const p = document.documentElement.requestFullscreen();
+      if (p && p.catch) p.catch((err) => console.error('[fullscreen] requestFullscreen failed:', err.name, err.message));
+    } else {
+      const p = document.exitFullscreen();
+      if (p && p.catch) p.catch((err) => console.error('[fullscreen] exitFullscreen failed:', err.name, err.message));
+    }
+  };
+  document.addEventListener('fullscreenchange', () => {
+    const presenting = !!document.fullscreenElement;
+    window.postMessage({ __omelette_presenting: presenting }, '*');
+  });
+  fsBtn.addEventListener('click', toggleFullscreen);
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'f' || e.key === 'F') {
+      const tag = (e.target && e.target.tagName) || '';
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+      toggleFullscreen();
+    }
+  });
+  if (!document.documentElement.requestFullscreen) {
+    console.warn('[fullscreen] Fullscreen API not available in this browser/context.');
+  }
+})();
+</script>
+</body></html>

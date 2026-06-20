@@ -1,0 +1,15 @@
+references/
+.claude/*.local.*
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+
+# Backup files from manual editing
+*.bak
+*.bak[0-9]*
+
+# Local env files
+.env
+.env.local
