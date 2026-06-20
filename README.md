@@ -45,3 +45,7 @@
 
 - 대본 v6.3 (최종 다듬기 단계), 슬라이드 18장 (S1~S13, AI-Native SDLC 5가지 변화 디테일 슬라이드 S7a~d, S8 포함) 완료.
 - `talk/AI 강연 슬라이드.html`과 `.bak*` 파일들은 이전 버전(v1) 작업 히스토리이며 더 이상 사용하지 않는다.
+
+## 발표자
+
+Daehwa Seo — Atlassian Software Engineer
